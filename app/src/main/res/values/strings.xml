@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MySms</string>
+    <string name="action_settings">Settings</string>
+    <string name="permissions_rationale">MySMS Will need to access your SMS and Contacts in order to function</string>
+    <string name="empty_conversations">No conversations yet</string>
+    <string name="minutes">minutes</string>
+    <string name="hours">Hours</string>
+    <string name="set_as_default_app">Set as default app</string>
+    <string name="empty_conversations_sub">Click the compose button to start chatting :)</string>
+    <string name="permissions_rationale_title">We need these permissions</string>
+</resources>
