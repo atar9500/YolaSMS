@@ -1,4 +1,4 @@
-package com.atar.mysms;
+package com.atar.mysms.ui;
 
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -9,6 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.atar.mysms.structure.Contact;
+import com.atar.mysms.structure.Conversation;
+import com.atar.mysms.R;
+import com.atar.mysms.structure.Sms;
 import com.bumptech.glide.Glide;
 
 import java.text.SimpleDateFormat;
@@ -34,12 +38,14 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
      * Data
      */
     private List<Conversation> mConversations;
+    private View.OnClickListener mClickListener;
 
     /**
      * Constructor
      */
-    public ConversationsAdapter(List<Conversation> conversations){
+    ConversationsAdapter(List<Conversation> conversations, View.OnClickListener clickListener){
         mConversations = conversations;
+        mClickListener = clickListener;
     }
 
     /**
@@ -82,7 +88,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
                 holder.mPhoto.setImageResource(R.color.colorAccent);
             }
         } else if(imageUri == null){
-            holder.mPhoto.setImageResource(R.drawable.def_account);
+            holder.mPhoto.setImageResource(R.drawable.non_contact);
         } else {
             Glide.with(holder.itemView).load(Uri.parse(imageUri)).into(holder.mPhoto);
         }
@@ -117,6 +123,9 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
         holder.mBody.setTypeface(null, isItUnread ? Typeface.BOLD : Typeface.NORMAL);
         holder.mName.setTypeface(null, isItUnread ? Typeface.BOLD : Typeface.NORMAL);
+
+        holder.itemView.setTag(conversation);
+        holder.itemView.setOnClickListener(mClickListener);
     }
 
     @Override

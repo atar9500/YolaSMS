@@ -6,7 +6,7 @@
     android:id="@+id/main_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.atar.mysms.MainActivity">
+    tools:context="com.atar.mysms.ui.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"

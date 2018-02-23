@@ -1,4 +1,4 @@
-package com.atar.mysms;
+package com.atar.mysms.structure;
 
 /*
  * Created by Atar on 03-Feb-18.
@@ -46,4 +46,14 @@ public class Contact {
         this.imageUri = imageUri;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof  Contact){
+            Contact contact = (Contact)obj;
+            return contact.getNormalizedPhoneNumber().equals(getNormalizedPhoneNumber())
+                    && contact.getId() == getId();
+        } else {
+            return false;
+        }
+    }
 }

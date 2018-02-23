@@ -1,4 +1,4 @@
-package com.atar.mysms;
+package com.atar.mysms.ui;
 
 import android.content.Context;
 import android.provider.Telephony;
@@ -12,6 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+
+import com.atar.mysms.structure.Conversation;
+import com.atar.mysms.R;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -39,6 +42,7 @@ public class ConversationsFragment extends Fragment {
      * Data
      */
     private List<Conversation> mConversations;
+    private Conversation mClickedConversation;
     private ConversationsCallback mCallback;
 
     /**
@@ -66,7 +70,7 @@ public class ConversationsFragment extends Fragment {
 
         if(mConversations == null){
             mConversations = new ArrayList<>();
-            mCallback.readContacts();
+            mCallback.readConversations();
         }
 
         mView = inflater.inflate(R.layout.fragment_conversations, container, false);
@@ -98,7 +102,16 @@ public class ConversationsFragment extends Fragment {
     private void initUIWidgets(){
 
         if(mAdapter == null){
-            mAdapter = new ConversationsAdapter(mConversations);
+            mAdapter = new ConversationsAdapter(mConversations, new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Object object = view.getTag();
+                    if(object instanceof Conversation){
+                        mClickedConversation = (Conversation)object;
+                        mCallback.onConversationClick();
+                    }
+                }
+            });
         }
 
         RecyclerView list = mView.findViewById(R.id.fc_list);
@@ -115,7 +128,7 @@ public class ConversationsFragment extends Fragment {
         });
 
         mEmpty = mView.findViewById(R.id.fc_empty);
-        updateEmptyView();
+        mEmpty.setVisibility(mAdapter.getItemCount() == 0 ? View.VISIBLE : View.INVISIBLE);
 
         mSetDefault = mView.findViewById(R.id.fc_set_default);
         mSetDefault.setOnClickListener(new View.OnClickListener() {
@@ -128,16 +141,6 @@ public class ConversationsFragment extends Fragment {
         });
         updateSetDefaultView();
 
-    }
-
-    private void updateEmptyView(){
-        boolean isEmpty = mAdapter.getItemCount() == 0;
-        if(isEmpty && !mEmpty.isShown()){
-            mEmpty.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in));
-        } else if(!isEmpty && mEmpty.isShown()){
-            mEmpty.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_out));
-        }
-        mEmpty.setVisibility(isEmpty ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void updateSetDefaultView(){
@@ -172,6 +175,10 @@ public class ConversationsFragment extends Fragment {
         }
     }
 
+    public Conversation getClickedConversation(){
+        return mClickedConversation;
+    }
+
     /**
      * EventBus Methods
      */
@@ -189,8 +196,9 @@ public class ConversationsFragment extends Fragment {
      * Inner Interfaces
      */
     public interface ConversationsCallback{
-        void readContacts();
+        void readConversations();
         void setDefault();
+        void onConversationClick();
     }
 
 }

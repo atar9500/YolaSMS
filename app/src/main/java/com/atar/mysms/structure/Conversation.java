@@ -1,4 +1,4 @@
-package com.atar.mysms;
+package com.atar.mysms.structure;
 
 import java.util.ArrayList;
 import java.util.List;

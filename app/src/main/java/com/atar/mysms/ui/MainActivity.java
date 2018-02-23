@@ -1,4 +1,4 @@
-package com.atar.mysms;
+package com.atar.mysms.ui;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.provider.Telephony;
 import android.support.design.widget.Snackbar;
@@ -19,6 +18,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.atar.mysms.BuildConfig;
+import com.atar.mysms.utils.YolaUtils;
+import com.atar.mysms.structure.Conversation;
+import com.atar.mysms.R;
+import com.atar.mysms.structure.Sms;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -29,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements ConversationsFragment.ConversationsCallback {
+        implements ConversationsFragment.ConversationsCallback, MessagingFragment.MessagingCallback {
 
     /**
      * Request Codes
@@ -53,6 +57,7 @@ public class MainActivity extends AppCompatActivity
      * Fragments
      */
     private ConversationsFragment mConversationsFragment;
+    private MessagingFragment mMessagingFragment;
 
     /**
      * Activity Methods
@@ -86,7 +91,7 @@ public class MainActivity extends AppCompatActivity
      * ConversationsFragment.ConversationsCallback Methods
      */
     @Override
-    public void readContacts() {
+    public void readConversations() {
         List<String> permissions = getNeededPermissions();
         if(permissions.size() > 0){
             requestPermissions(READ_CONTACTS_REQUEST, permissions);
@@ -100,7 +105,7 @@ public class MainActivity extends AppCompatActivity
                             Telephony.Sms.DATE_SENT, Telephony.Sms.THREAD_ID,
                             Telephony.Sms.READ, Telephony.Sms.PERSON,
                             Telephony.Sms.TYPE, Telephony.Sms.STATUS};
-                    Uri uri = Uri.parse("content://mms-sms/conversations/");
+                    Uri uri = Uri.parse("content://mms-sms/complete-conversations/");
                     Cursor query = getContentResolver().query(uri, projection, null,
                             null, Telephony.Sms.DEFAULT_SORT_ORDER);
                     if(query != null){
@@ -118,14 +123,16 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 }
                             }
-                            sms = getSMS(query);
+                            sms = YolaUtils.getSMS(query);
                             if(conversation == null){
                                 conversation = new Conversation();
                                 conversation.setThreadId(threadId);
-                                conversation.setContact(getContact(sms));
+                                conversation.setContact(YolaUtils.getContact(sms, getContentResolver()));
+                                conversation.getMessages().add(sms);
+                                conversations.add(conversation);
+                            } else {
+                                conversation.getMessages().add(sms);
                             }
-                            conversation.getMessages().add(sms);
-                            conversations.add(conversation);
                         }
                         runOnUiThread(new Runnable() {
                             @Override
@@ -137,47 +144,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             });
-
-            // TODO: Read all the conversations on a separate thread and post it on EventBus
         }
-    }
-
-    private Sms getSMS(Cursor cursor){
-        Sms sms = new Sms();
-        sms.setId(cursor.getLong(cursor.getColumnIndex(Telephony.Sms._ID)));
-        sms.setBody(cursor.getString(cursor.getColumnIndex(Telephony.Sms.BODY)));
-        sms.setUnread(cursor.getInt(cursor.getColumnIndex(Telephony.Sms.READ)) == 0);
-        sms.setType(cursor.getInt(cursor.getColumnIndex(Telephony.Sms.TYPE)));
-        sms.setAddress(cursor.getString(cursor.getColumnIndex(Telephony.Sms.ADDRESS)));
-        boolean isOutbox = sms.getType() == Telephony.Sms.MESSAGE_TYPE_OUTBOX;
-        sms.setTimestamp(cursor.getLong(cursor.getColumnIndex
-                (isOutbox ? Telephony.Sms.DATE_SENT : Telephony.Sms.DATE)));
-        return sms;
-    }
-
-    private Contact getContact(Sms sms){
-        Contact contact = new Contact();
-        String address = sms.getAddress();
-        String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME,
-                ContactsContract.PhoneLookup.NUMBER, ContactsContract.PhoneLookup.NORMALIZED_NUMBER,
-                ContactsContract.PhoneLookup.PHOTO_URI, ContactsContract.PhoneLookup._ID};
-        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
-        Cursor query = getContentResolver().query(uri, projection, null, null, null);
-        if(query != null && query.moveToFirst()){
-            contact.setId(query.getLong(query.getColumnIndex(projection[4])));
-            contact.setName(query.getString(query.getColumnIndex(projection[0])));
-            contact.setImageUri(query.getString(query.getColumnIndex(projection[3])));
-            contact.setDisplayedPhoneNumber(query.getString(query.getColumnIndex(projection[1])));
-            contact.setNormalizedPhoneNumber(query.getString(query.getColumnIndex(projection[2])));
-            query.close();
-        } else {
-            contact.setId(-1);
-            contact.setName(address);
-            contact.setImageUri(null);
-            contact.setDisplayedPhoneNumber(address);
-            contact.setNormalizedPhoneNumber(address);
-        }
-        return contact;
     }
 
     @Override
@@ -188,6 +155,23 @@ public class MainActivity extends AppCompatActivity
             intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, getPackageName());
             startActivityForResult(intent, CHANGE_DEFAULT_REQUEST);
         }
+    }
+
+    @Override
+    public void onConversationClick() {
+        getSupportFragmentManager().beginTransaction(). replace(R.id.am_container,
+                mMessagingFragment, MessagingFragment.TAG).addToBackStack(ConversationsFragment.TAG).commit();
+    }
+
+    /**
+     * MessagingFragment.MessagingCallback Methods
+     */
+    @Override
+    public Conversation getConversation() {
+        if(mConversationsFragment != null){
+            return mConversationsFragment.getClickedConversation();
+        }
+        return null;
     }
 
     /**
@@ -203,6 +187,11 @@ public class MainActivity extends AppCompatActivity
                 .findFragmentByTag(ConversationsFragment.TAG);
         if(mConversationsFragment == null){
             mConversationsFragment = new ConversationsFragment();
+        }
+        mMessagingFragment = (MessagingFragment)getSupportFragmentManager()
+                .findFragmentByTag(MessagingFragment.TAG);
+        if(mMessagingFragment == null){
+            mMessagingFragment = new MessagingFragment();
         }
     }
 
@@ -225,7 +214,7 @@ public class MainActivity extends AppCompatActivity
                         if(report.areAllPermissionsGranted()){
                             switch(requestCode){
                                 case READ_CONTACTS_REQUEST:
-                                    readContacts();
+                                    readConversations();
                                     break;
                             }
                         } else {

@@ -8,4 +8,9 @@
     <string name="set_as_default_app">Set as default app</string>
     <string name="empty_conversations_sub">Click the compose button to start chatting :)</string>
     <string name="permissions_rationale_title">We need these permissions</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="type_hint">Type a message</string>
+    <string name="empty_messaging">No messages yet</string>
 </resources>
