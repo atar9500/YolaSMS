@@ -4,8 +4,10 @@ package com.atar.mysms.ui;
  * Created by Atar on 23-Feb-18.
  */
 
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Telephony;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +20,10 @@ import com.atar.mysms.structure.Conversation;
 import com.atar.mysms.R;
 import com.atar.mysms.structure.Sms;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -40,7 +46,7 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
     private List<Sms> mSmsMessages;
     private Contact mContact;
 
-    public MessagingAdapter(Conversation conversation){
+    MessagingAdapter(Conversation conversation){
         mSmsMessages = conversation.getMessages();
         mContact = conversation.getContact();
     }
@@ -57,7 +63,7 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
     }
 
     @Override
-    public void onBindViewHolder(SmsHolder holder, int position) {
+    public void onBindViewHolder(final SmsHolder holder, int position) {
         Sms sms = mSmsMessages.get(position);
 
         holder.mBody.setText(sms.getBody());
@@ -85,12 +91,12 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
         } else if(currentTimeMillis - HOUR > lastMessageTime){
             long hoursAfter = (currentTimeMillis - lastMessageTime) / HOUR;
             String s = hoursAfter + " " + holder.mDate.getResources().getString(R.string.hours);
-            holder.mDate.setText(s);
+            holder.mDateTop.setText(s);
             patternBottom = "HH:mm";
         } else if(currentTimeMillis - lastMessageTime > MINUTE){
             long minutesAfter = (currentTimeMillis - lastMessageTime) / MINUTE;
             String s = minutesAfter + " " + holder.mDate.getResources().getString(R.string.minutes);
-            holder.mDate.setText(s);
+            holder.mDateTop.setText(s);
             patternBottom = "HH:mm";
         }
         if(patternTop != null){
@@ -123,6 +129,39 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
                 Glide.with(holder.itemView).load(Uri.parse(imageUri)).into(holder.mPhoto);
             }
             holder.mPhoto.setVisibility(isBubble ? View.VISIBLE : View.INVISIBLE);
+        }
+
+        holder.mCard.setVisibility((sms.isMms() ? View.VISIBLE : View.GONE));
+        if(sms.isMms()){
+            holder.mBody.setVisibility(sms.getBody() == null || sms.getBody().isEmpty() ? View.GONE : View.VISIBLE);
+            String imageUri = sms.getImageUri();
+            boolean isThereImageUri = imageUri != null && !imageUri.isEmpty();
+            holder.mCard.setVisibility(isThereImageUri ? View.VISIBLE : View.GONE);
+            if(isThereImageUri){
+                holder.mLoadingMms.setVisibility(View.VISIBLE);
+                Glide.with(holder.itemView)
+                        .load(imageUri)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e,
+                                    Object model, Target<Drawable> target, boolean isFirstResource) {
+                                holder.mLoadingMms.setVisibility(View.GONE);
+                                holder.mError.setVisibility(View.VISIBLE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model,
+                                    Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                holder.mLoadingMms.setVisibility(View.GONE);
+                                holder.mError.setVisibility(View.GONE);
+                                return false;
+                            }
+                        })
+                        .into(holder.mMms);
+            } else {
+                Glide.with(holder.itemView).clear(holder.mMms);
+            }
         }
 
     }
@@ -159,23 +198,32 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
         /**
          * UI Widgets
          */
-        private ImageView mPhoto;
+        private ImageView mPhoto, mMms;
         private TextView mBody, mDateTop, mDate;
+        private View mCard, mLoadingMms, mError;
 
         /**
          * Constructor
          */
-        public SmsHolder(View itemView, int type) {
+        SmsHolder(View itemView, int type) {
             super(itemView);
             if(type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX){
                 mPhoto = itemView.findViewById(R.id.im_photo);
                 mBody = itemView.findViewById(R.id.im_body);
                 mDate = itemView.findViewById(R.id.im_date);
                 mDateTop = itemView.findViewById(R.id.im_date_top);
+                mMms = itemView.findViewById(R.id.im_mms);
+                mCard = itemView.findViewById(R.id.im_card);
+                mLoadingMms = itemView.findViewById(R.id.im_loading);
+                mError = itemView.findViewById(R.id.im_error_mms);
             } else {
                 mBody = itemView.findViewById(R.id.om_body);
                 mDate = itemView.findViewById(R.id.om_date);
                 mDateTop = itemView.findViewById(R.id.om_date_top);
+                mMms = itemView.findViewById(R.id.om_mms);
+                mCard = itemView.findViewById(R.id.om_card);
+                mLoadingMms = itemView.findViewById(R.id.om_loading);
+                mError = itemView.findViewById(R.id.om_error_mms);
             }
         }
     }

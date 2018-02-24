@@ -68,4 +68,20 @@ public class Sms {
         return mType != Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     }
 
+    private boolean mIsMms;
+    public boolean isMms() {
+        return mIsMms;
+    }
+    public void setMms(boolean mms) {
+        mIsMms = mms;
+    }
+
+    private String mImageUri;
+    public String getImageUri() {
+        return mImageUri;
+    }
+    public void setImageUri(String imageUri) {
+        mImageUri = imageUri;
+    }
+
 }

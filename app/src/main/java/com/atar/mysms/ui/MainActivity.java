@@ -1,6 +1,7 @@
 package com.atar.mysms.ui;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -106,7 +107,8 @@ public class MainActivity extends AppCompatActivity
                             Telephony.Sms.READ, Telephony.Sms.PERSON,
                             Telephony.Sms.TYPE, Telephony.Sms.STATUS};
                     Uri uri = Uri.parse("content://mms-sms/complete-conversations/");
-                    Cursor query = getContentResolver().query(uri, projection, null,
+                    ContentResolver contentResolver = getContentResolver();
+                    Cursor query = contentResolver.query(uri, projection, null,
                             null, Telephony.Sms.DEFAULT_SORT_ORDER);
                     if(query != null){
                         while(query.moveToNext()){
@@ -123,7 +125,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 }
                             }
-                            sms = YolaUtils.getSMS(query);
+                            sms = YolaUtils.getSMS(query, contentResolver);
                             if(conversation == null){
                                 conversation = new Conversation();
                                 conversation.setThreadId(threadId);
@@ -133,7 +135,11 @@ public class MainActivity extends AppCompatActivity
                             } else {
                                 conversation.getMessages().add(sms);
                             }
+                            if(sms.isMms()){
+                                YolaUtils.sortSmsList(conversation.getMessages());
+                            }
                         }
+                        YolaUtils.sortConversationsList(conversations);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
