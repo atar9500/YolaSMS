@@ -15,6 +15,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.EditText;
 
 import com.atar.mysms.structure.Contact;
@@ -22,6 +23,7 @@ import com.atar.mysms.structure.Conversation;
 import com.atar.mysms.R;
 import com.atar.mysms.structure.Sms;
 import com.atar.mysms.structure.SmsReceivedEvent;
+import com.labo.kaji.fragmentanimations.MoveAnimation;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -50,6 +52,7 @@ public class MessagingFragment extends Fragment {
     private MessagingCallback mCallback;
     private Conversation mConversation;
     private MessagingAdapter mAdapter;
+    private boolean mIsAttaching;
 
     /**
      * UI Widgets
@@ -83,6 +86,22 @@ public class MessagingFragment extends Fragment {
         initUIWidgets();
 
         return mView;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mIsAttaching = true;
+    }
+
+    @Override
+    public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+        if(mIsAttaching){
+            mIsAttaching = false;
+            return super.onCreateAnimation(transit, enter, nextAnim);
+        } else {
+            return MoveAnimation.create(enter ? MoveAnimation.LEFT : MoveAnimation.RIGHT, enter, 350);
+        }
     }
 
     /**
