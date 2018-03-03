@@ -6,6 +6,8 @@ package com.atar.mysms.structure;
 
 import android.provider.Telephony;
 
+import com.google.android.mms.pdu_alt.PduHeaders;
+
 public class Sms {
 
     private long mId;
@@ -65,7 +67,7 @@ public class Sms {
     }
 
     public boolean isSentSMS(){
-        return mType != Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+        return mType != Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX && mType != PduHeaders.FROM;
     }
 
     private boolean mIsMms;

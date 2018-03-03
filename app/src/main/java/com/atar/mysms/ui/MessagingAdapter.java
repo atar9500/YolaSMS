@@ -24,6 +24,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.google.android.mms.pdu_alt.PduHeaders;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -34,11 +35,17 @@ import java.util.Locale;
 public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsHolder> {
 
     /**
-     * Constants
+     * Time units constants
      */
     private static final int SECOND = 1000;
     private static final int MINUTE = SECOND * 60;
     private static final int HOUR = MINUTE * 60;
+
+    /**
+     * Type of messages constants
+     */
+    private static final int TYPE_SENT = 0;
+    private static final int TYPE_RECEIVED = 1;
 
     /**
      * Data
@@ -56,10 +63,9 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
      */
     @Override
     public SmsHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        boolean isSent = viewType != Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
         return new SmsHolder(LayoutInflater.from(parent.getContext())
-                .inflate(isSent ? R.layout.outgoing_message : R.layout.incoming_message,
-                parent, false), viewType);
+                .inflate(viewType == TYPE_SENT ? R.layout.outgoing_message :
+                R.layout.incoming_message, parent, false), viewType);
     }
 
     @Override
@@ -173,7 +179,14 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
 
     @Override
     public int getItemViewType(int position) {
-        return mSmsMessages.get(position).getType();
+        Sms sms = mSmsMessages.get(position);
+        int type = sms.getType();
+        String address = mContact.getDisplayedPhoneNumber();
+        if(sms.isMms()){
+            return address.equals(sms.getAddress()) ? TYPE_SENT : TYPE_RECEIVED;
+        } else {
+            return type != Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ? TYPE_SENT : TYPE_RECEIVED;
+        }
     }
 
     /**
@@ -207,7 +220,7 @@ public class MessagingAdapter extends RecyclerView.Adapter<MessagingAdapter.SmsH
          */
         SmsHolder(View itemView, int type) {
             super(itemView);
-            if(type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX){
+            if(type == TYPE_RECEIVED){
                 mPhoto = itemView.findViewById(R.id.im_photo);
                 mBody = itemView.findViewById(R.id.im_body);
                 mDate = itemView.findViewById(R.id.im_date);

@@ -22,86 +22,90 @@
         android:layout_marginStart="7dp"
         android:src="@drawable/non_contact"/>
 
-    <TextView
-        android:id="@+id/im_body"
+    <LinearLayout
+        android:id="@+id/im_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/im_photo"
-        android:layout_below="@+id/im_date_top"
-        android:background="@drawable/incoming_bubble"
+        android:orientation="vertical"
         android:layout_marginStart="6dp"
         android:layout_marginEnd="50dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        tools:text="efefffffffef"/>
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/im_card"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_toEndOf="@id/im_photo"
-        android:layout_below="@+id/im_body"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="50dp"
-        android:visibility="gone"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="0dp">
+        android:layout_below="@+id/im_date_top">
 
-        <LinearLayout
-            android:id="@+id/im_error_mms"
+        <TextView
+            android:id="@+id/im_body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:padding="16dp"
-            android:visibility="gone">
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/incoming_bubble"
+            android:textSize="16sp"
+            tools:text="efefffffffef"/>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/im_card"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:id="@+id/im_error_mms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/image_broken"
+                    android:contentDescription="@null"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_image"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/colorPrimary"/>
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/im_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="16dp"/>
 
             <ImageView
+                android:id="@+id/im_mms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/image_broken"
+                android:maxHeight="250dp"
+                android:maxWidth="250dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
                 android:contentDescription="@null"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/no_image"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/colorPrimary"/>
+        </android.support.v7.widget.CardView>
 
-        </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/im_loading"
+        <TextView
+            android:id="@+id/im_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="16dp"/>
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="end"
+            android:textSize="12sp"
+            tools:text="Thu 18:51"/>
 
-        <ImageView
-            android:id="@+id/im_mms"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxHeight="300dp"
-            android:maxWidth="300dp"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop"/>
-
-    </android.support.v7.widget.CardView>
-
-    <TextView
-        android:id="@+id/im_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/im_photo"
-        android:layout_below="@+id/im_card"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="4dp"
-        android:textSize="12sp"
-        tools:text="Thu 18:51"/>
+    </LinearLayout>
 
 </RelativeLayout>

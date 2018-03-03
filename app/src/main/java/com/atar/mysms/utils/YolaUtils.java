@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -85,6 +86,7 @@ public class YolaUtils {
                 sms.setTimestamp(cursor.getLong(cursor.getColumnIndex
                         (isOutbox ? Telephony.Mms.DATE_SENT : Telephony.Mms.DATE)) * 1000);
                 getMmsContent(sms, contentResolver);
+                getMmsInfo(sms, contentResolver);
             } catch (SQLiteException e){
                 e.printStackTrace();
             } finally {
@@ -147,6 +149,23 @@ public class YolaUtils {
             }
         }
         return sb.toString();
+    }
+
+    private static void getMmsInfo(Sms sms, ContentResolver contentResolver) {
+        String selectionAdd = Telephony.Mms.Addr.MSG_ID + "=?";
+        String[] selectionArgs = new String[]{Long.toString(sms.getId())};
+        String[] projection = new String[]{Telephony.Mms.Addr.ADDRESS, Telephony.Mms.Addr.TYPE};
+        String uriStr = MessageFormat.format("content://mms/{0}/addr", sms.getId());
+        Uri uriAddress = Uri.parse(uriStr);
+        Cursor cAdd = contentResolver.query(uriAddress, projection,
+                selectionAdd, selectionArgs, null);
+        if (cAdd != null && cAdd.moveToFirst()) {
+            do {
+                sms.setAddress(cAdd.getString(cAdd.getColumnIndex(Telephony.Mms.Addr.ADDRESS)));
+                sms.setType(cAdd.getInt(cAdd.getColumnIndex(Telephony.Mms.Addr.TYPE)));
+            } while (cAdd.moveToNext());
+           cAdd.close();
+        }
     }
 
     public static void sortSmsList(List<Sms> smsList){
